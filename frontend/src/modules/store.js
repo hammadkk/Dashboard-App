@@ -6,7 +6,7 @@ import { applyMiddleware, createStore } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension/developmentOnly';
 import thunkMiddleware from 'redux-thunk';
 
-const history = createBrowserHistory();
+const history = createBrowserHistory({ basename: '/hammad' });
 
 let store;
 

@@ -1,4 +1,4 @@
-const backendUrl = `https://api.inventory-app.com/api`;
+const backendUrl = `https://zdp.unit.zones.com/hammad/api`;
 
 export default {
   backendUrl,

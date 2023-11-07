@@ -42,7 +42,7 @@ require('./product')(routes);
 require('./order')(routes);
 
 // Add the routes to the /api endpoint
-app.use('/api', routes);
+app.use('/hammad/api', routes);
 
 // Exposes the build of the frontend
 // to the root / of the server
