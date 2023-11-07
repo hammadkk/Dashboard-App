@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres-deployment
-  namespace: testingcluster
+  namespace: hammad-inventory-app
 spec:
   replicas: 1
   selector:
@@ -23,3 +23,17 @@ spec:
                 name: postgres-config
             - secretRef:
                 name: postgres-credentials 
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: hammad-inventory-app
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432

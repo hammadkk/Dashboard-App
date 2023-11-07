@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hammad-backend-ingress
+  namespace: hammad-inventory-app
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/use-private-ip: "true"
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: "ZDP-DEV-appgateway-certificates"
+    appgw.ingress.kubernetes.io/health-probe-path: "/hammad/api/settings"
+    appgw.ingress.kubernetes.io/request-timeout: "90"
+spec:
+  rules:
+    - host: zdp.unit.zones.com
+      http:
+        paths:
+          - path: /hammad/api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port: 
+                  number: 8080

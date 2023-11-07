@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend-deployment
-  namespace: testingcluster
+  namespace: hammad-inventory-app
 spec:
   replicas: 1
   selector:
@@ -15,8 +15,20 @@ spec:
     spec:
       containers:
         - name: backend-container
-          image: backend-image
-          imagePullPolicy: Never
+          image: zdpapps.azurecr.io/hammad-backend-image
           ports:
             - containerPort: 8080
-          
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: hammad-inventory-app
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
