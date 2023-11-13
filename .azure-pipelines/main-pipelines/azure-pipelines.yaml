@@ -1,0 +1,17 @@
+trigger:
+  - master
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- template: ../templates/variables/variables-template.yaml
+
+jobs:
+- job: BuildAndDeploy
+  steps:
+  - template: ../templates/steps/steps-template.yaml
+    parameters:
+      azureSubscription: $(azureSubscriptionValue)
+      containerRegistry: 'Hammad-Service'
+      appSuffix: 'hammad'

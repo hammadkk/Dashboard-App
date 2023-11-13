@@ -1,0 +1,8 @@
+variables:
+- name: BRANCH_NAME
+  value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+- name: date
+  value: $(date "+%d%m%Y")
+- group: Hammad-Variable-Group
+- name: azureSubscriptionValue
+  value: 'Hammad-acr-connection'

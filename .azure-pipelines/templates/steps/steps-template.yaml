@@ -1,0 +1,122 @@
+parameters:
+  azureSubscription: ''
+  containerRegistry: ''
+ 
+
+steps:
+  # - task: NodeTool@0
+  #   inputs:
+  #     versionSpec: "10.x"
+  #   displayName: "Install Node.js"
+  # - script: |
+  #     cd $(System.DefaultWorkingDirectory)/frontend
+  #     npm install
+  #     npm run build
+  #   displayName: 'npm install , build and test (Frontend)'
+  # - script: |
+  #     cd $(System.DefaultWorkingDirectory)/backend
+  #     npm install
+  #   displayName: 'npm install (Backend)'
+
+
+  - task: PowerShell@2
+    displayName: "Show Docker Image tag value"
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      targetType: "inline"
+      script: "echo $(BRANCH_NAME)$(date)"
+
+
+  - task: AzureCLI@2
+    displayName: "Connecting to ACR"
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      azureSubscription: ${{ parameters.azureSubscription }}
+      scriptType: "bash"
+      scriptLocation: "inlineScript"
+      inlineScript: "az acr login -n $(Registry)"
+
+
+  - task: Docker@2
+    displayName: "Build Backend Docker Image"
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      containerRegistry: ${{ parameters.containerRegistry }}
+      repository: Backendimage
+      command: "build"
+      tags: "$(BRANCH_NAME)"
+      Dockerfile: $(System.DefaultWorkingDirectory)/backend/Dockerfile
+
+
+
+  - task: Docker@2
+    displayName: "Build Frontend Docker Image"
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      containerRegistry: ${{ parameters.containerRegistry }}
+      repository: Frontendimage
+      command: "build"
+      tags: "$(BRANCH_NAME)"
+      Dockerfile: $(System.DefaultWorkingDirectory)/frontend/Dockerfile
+
+
+
+  - task: PowerShell@2
+    displayName: "Show Docker Images"
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      targetType: "inline"
+      script: "docker images"
+
+
+
+  - task: PowerShell@2
+    displayName: "Tag Backend Docker Image"
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      targetType: "inline"
+      script: |
+        docker tag $(Registry)/backendimage:$(BRANCH_NAME)  $(Registry)/backendimage:$(BRANCH_NAME)-$(date)-$(Build.BuildId)
+        docker tag $(Registry)/backendimage:$(BRANCH_NAME)  $(Registry)/backendimage:latest
+
+
+  - task: PowerShell@2
+    displayName: "Push Backend Docker Image"
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      targetType: "inline"
+      script: |
+        docker push $(Registry)/backendimage:$(BRANCH_NAME)-$(date)-$(Build.BuildId)
+        docker push $(Registry)/backendimage:latest 
+
+
+  
+  - task: PowerShell@2
+    displayName: "Tag Frontend Docker Image"
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      targetType: "inline"
+      script: |
+        docker tag $(Registry)/frontendimage:$(BRANCH_NAME)  $(Registry)/frontendimage:$(BRANCH_NAME)-$(date)-$(Build.BuildId)
+        docker tag $(Registry)/frontendimage:$(BRANCH_NAME)  $(Registry)/frontendimage:latest
+
+
+  - task: PowerShell@2
+    displayName: "Push Frontend Docker Image"
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      targetType: "inline"
+      script: |
+        docker push $(Registry)/frontendimage:$(BRANCH_NAME)-$(date)-$(Build.BuildId)
+        docker push $(Registry)/frontendimage:latest 
+
+  - task: SSH@0
+    displayName: 'Update Image In K8'
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      sshEndpoint: 'Hammad-SSH'
+      runOptions: 'inline'
+      inline: |
+        kubectl set image deployment/backend-deployment backend-container=$(Registry)/backendimage:$(BRANCH_NAME)-$(date)-$(Build.BuildId) -n testingcluster
+        kubectl set image deployment/frontend-deployment frontend-container=$(Registry)/frontendimage:$(BRANCH_NAME)-$(date)-$(Build.BuildId) -n testingcluster
+      
